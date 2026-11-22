@@ -232,9 +232,15 @@ public class FallbackController {
 
     @GetMapping("/api/v1/ratelimit/test")
     public Mono<ResponseEntity<Map<String, Object>>> testRateLimit(ServerHttpRequest request) {
-        String clientIp = "client-default";
-        if (request.getRemoteAddress() != null && request.getRemoteAddress().getAddress() != null) {
-            clientIp = request.getRemoteAddress().getAddress().getHostAddress();
+        String clientIp = request.getHeaders().getFirst("x-forwarded-for");
+        if (clientIp != null && clientIp.contains(",")) {
+            clientIp = clientIp.split(",")[0].trim();
+        }
+        if (clientIp == null || clientIp.isBlank()) {
+            clientIp = request.getHeaders().getFirst("cf-connecting-ip");
+        }
+        if (clientIp == null || clientIp.isBlank()) {
+            clientIp = "global-client-session";
         }
 
         // Limit: 5 requests per 10-second moving window
