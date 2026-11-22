@@ -12,7 +12,7 @@ spring:
     gateway:
       routes:
         - id: payment-service-route
-          uri: https://httpbin.org
+          uri: ${ORDER_SERVICE_URL:https://httpbin.org}
           predicates:
             - Path=/api/v1/payments/**
           filters:
@@ -22,7 +22,7 @@ spring:
                 name: paymentCircuitBreaker
                 fallbackUri: forward:/fallback/payments
         - id: user-service-route
-          uri: https://httpbin.org
+          uri: ${USER_SERVICE_URL:https://httpbin.org}
           predicates:
             - Path=/api/v1/users/**
           filters:

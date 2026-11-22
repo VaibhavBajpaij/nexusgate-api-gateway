@@ -3,22 +3,91 @@ version: '3.8'
 services:
   nexusgate:
     build: .
+    container_name: nexusgate-core
     ports:
       - "8080:8080"
     environment:
+      - SERVER_PORT=8080
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - ORDER_SERVICE_URL=http://order-service:8081
+      - USER_SERVICE_URL=http://user-service:8082
     depends_on:
       - redis
+      - order-service
+      - user-service
+    restart: unless-stopped
+    networks:
+      - nexusgate-mesh
+
+  order-service:
+    image: python:3.11-alpine
+    container_name: mock-order-service
+    command: >
+      sh -c "python -c '
+      import http.server, socketserver, json
+      class H(http.server.BaseHTTPRequestHandler):
+          def do_GET(self):
+              self.send_response(200)
+              self.send_header(\"Content-Type\", \"application/json\")
+              self.end_headers()
+              self.wfile.write(json.dumps({\"service\": \"order-service\", \"status\": \"ACTIVE\", \"orders_count\": 42, \"version\": \"v2.1\"}).encode())
+      socketserver.TCPServer((\"\", 8081), H).serve_forever()'"
+    ports:
+      - "8081:8081"
+    networks:
+      - nexusgate-mesh
+
+  user-service:
+    image: python:3.11-alpine
+    container_name: mock-user-service
+    command: >
+      sh -c "python -c '
+      import http.server, socketserver, json
+      class H(http.server.BaseHTTPRequestHandler):
+          def do_GET(self):
+              self.send_response(200)
+              self.send_header(\"Content-Type\", \"application/json\")
+              self.end_headers()
+              self.wfile.write(json.dumps({\"service\": \"user-service\", \"status\": \"ACTIVE\", \"tier\": \"ENTERPRISE\", \"roles\": [\"ADMIN\", \"OPERATOR\"]}).encode())
+      socketserver.TCPServer((\"\", 8082), H).serve_forever()'"
+    ports:
+      - "8082:8082"
+    networks:
+      - nexusgate-mesh
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.2-alpine
+    container_name: nexusgate-redis
     ports:
       - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - nexusgate-mesh
 
   prometheus:
     image: prom/prometheus:v2.47.0
+    container_name: nexusgate-prometheus
     ports:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - nexusgate-mesh
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: nexusgate-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - nexusgate-mesh
+
+networks:
+  nexusgate-mesh:
+    driver: bridge
