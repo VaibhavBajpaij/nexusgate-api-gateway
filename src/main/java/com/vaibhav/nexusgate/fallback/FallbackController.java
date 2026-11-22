@@ -141,7 +141,7 @@ public class FallbackController {
 
                     <!-- Result -->
                     <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto min-h-[90px]">
-                      <pre id="rateLimitPre">// Click "Dispatch Request" rapidly to test RFC 6585 rate limiting</pre>
+                      <pre id="rateLimitPre" class="whitespace-pre-wrap break-words">// Click "Dispatch Request" rapidly to test RFC 6585 rate limiting</pre>
                     </div>
                   </div>
 
@@ -178,7 +178,7 @@ public class FallbackController {
 
                     <!-- Result -->
                     <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto min-h-[90px]">
-                      <pre id="outputPre">// Click buttons to inspect Resilience4j circuit breaker state</pre>
+                      <pre id="outputPre" class="whitespace-pre-wrap break-words">// Click buttons to inspect Resilience4j circuit breaker state</pre>
                     </div>
                   </div>
                 </div>
