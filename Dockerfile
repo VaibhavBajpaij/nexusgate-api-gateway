@@ -7,5 +7,6 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/nexusgate-api-gateway-1.0.0.jar app.jar
+ENV PORT=8080
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+CMD ["sh", "-c", "java -jar app.jar --server.port=${PORT}"]
